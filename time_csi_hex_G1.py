@@ -1,7 +1,7 @@
 '''
 Generate 200000 photons in a CsI crystal defined in geometry_collection_1.py
 Run it like
-python time_csi_hex_G1.py >& ../log/timing/ts_csi_hex_33_200_n1000k_0001.log
+python time_csi_hex_G1.py >& ../log/timing/ts_csi_hex_33_190_n200k_0001.log
 '''
 from geometry_collection_1 import *
 from gen_utilities import *
