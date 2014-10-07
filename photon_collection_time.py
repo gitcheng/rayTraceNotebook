@@ -23,7 +23,8 @@ import numpy.random as rand
 
 # <codecell>
 
-from scipy.constants import c as clight
+#from scipy.constants import c as clight
+clight = 299792458.0
 clightcm = clight * 100
 clightcmns = clightcm * 1e-9  ## speed of light in cm/ns
 
