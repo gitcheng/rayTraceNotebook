@@ -4,6 +4,10 @@ Generate 500000 photons in a LYSO crystal defined in geometry_collection_1.py
 Run it like
 python time_lyso_pet_G2.py >& ../log/timing/ts_lyso_pet_1_1_2_n500k_0001.log
 ''' 
+from geometry_collection_1 import *
+from gen_utilities import *
+from timing_utilities import *
+
 ngen= 500000
 allpos= gen_uniform_pos(-0.5,0.5, -0.5,0.5, 0, 2, ngen)
 ts_pet_lyso= sim_timing(cpet_lyso, allpos, t0origin=[0,0,2], mfp=170, seed=0)
