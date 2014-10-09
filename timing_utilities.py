@@ -116,8 +116,12 @@ def convolve_pulse_model(dt, pmodel):
     # build a recarray
     return np.array(zip(pm.t, dtconv), dtype=pm.dtype).view(np.recarray)
 
-def event_pulse(dtpop, npe0, scinttau, jittersigma, pmodel):
+def event_pulse(dtpop, npe0, scinttau, jittersigma, noise, pmodel):
     '''
+    Random sample a set of times, where the number of entries is a Poisson
+    distribution with the mean=npe0. They are then convolved with the
+    scintillator decay time, photodetector time jitter, and the pulse model.
+
     Return a recarray with fields 't' and 'p' to represent a signal
     pulse of an incident particle at a scintillator detector.
     All time unit is in ns.
@@ -126,13 +130,20 @@ def event_pulse(dtpop, npe0, scinttau, jittersigma, pmodel):
     *npe0* : expected number of detected photoelectrons
     *scinttau* : scintillator decay time
     *jittersigma* : photodetector time jitter sigma
+    *noise* : each point on the pulse curve (for entire event) is added a 
+              random number generated from a normal distribution with width
+              equal to *noise*.
     *pmodel* : photodetector pulse model
     '''
     npe = rand.poisson(npe0)
     tsample = sample_arrival_times(dtpop, npe)
     dt1 = convolve_decay(tsample, tau=scinttau)
     dt2 = convolve_gaussian(dt1, sigma= jittersigma, mean=0)
-    return convolve_pulse_model(dt2, pmodel)
+    dtrec = convolve_pulse_model(dt2, pmodel)
+    if noise>0:
+        ndt = rand.normal(0, noise, size=len(dtrec))
+        dtrec.p = dtrec.p+ ndt
+    return dtrec
 
 def find_nearest_index(array,value):
     idx = (np.abs(array-value)).argmin()
@@ -141,9 +152,25 @@ def find_nearest_index(array,value):
 def interpo(y, t1, t2, y1, y2):
     return t1 + (t2-t1)/(y2-y1)*(y-y1)
 
-def time_over_threshold(xt, pulse, fthreshold):
+def interpolinear(y, xi, yi):
+    '''
+    Given an array *xi* and an array *yi*, fit a linear function.
+    Then solve x for a given y.
+    '''
+    # fitting y= mx + b
+    xybar = (xi*yi).mean()
+    xbar = xi.mean()
+    ybar = yi.mean()
+    x2bar = (xi**2).mean()
+    m = (xybar - xbar*ybar)/(x2bar-xbar**2)
+    b = ybar - m*xbar
+    return (y-b)/m
+
+def time_reach_threshold(xt, pulse, fthreshold):
     '''
     Find the time at which pulse goes pass the threshold
+    *xt*: an array of times
+    *pulse*: an array of pulse height (at time of *xt*)
     *fthreshold*: a fraction of the pulse maximum
     '''
     if len(xt)!=len(pulse):
@@ -155,6 +182,10 @@ def time_over_threshold(xt, pulse, fthreshold):
     prise = pulse[:idxmax]
     # find the point near the threshold
     jt = find_nearest_index(prise, threshold)
+    j1 = max(0, jt-5)
+    j2 = min(jt+5, idxmax)
+    return interpolinear(threshold, xt[j1:j2], prise[j1:j2])
+
 
     if jt >= len(prise)-1:
         return xt[jt]
@@ -162,6 +193,46 @@ def time_over_threshold(xt, pulse, fthreshold):
     k1, k2 = jt, jt+1
     if prise[jt]>threshold:
         k1, k2 = jt-1, jt
-    return interpo(threshold, xt[k1], xt[k2], prise[k1], prise[k2])
+
+    return xt[jt]
+
+    #return interpo(threshold, xt[k1], xt[k2], prise[k1], prise[k2])
 
 
+def timing_samples(dtpop, npe0, scinttau, jittersigma, pulsemodel, noise,
+                   fthreshold, n):
+    '''
+    Return an array of the trigger times over threshold
+    *dtpop* : photon arrival time population to sample from
+    *npe0* : number of expected photoelectrons
+    *scinttau* : scintillator decay time
+    *jittersigma* : sigma of photodetector time jitter
+    *pulsemodel* : pulse model
+    *fthreshold* : threshold of timing trigger (fraction of the pulse maximum)
+    *noise* : each point on the pulse curve (for entire event) is added a 
+              random number generated from a normal distribution with width
+              equal to *noise*.
+    *n* : number of event samples
+    '''
+    xtot = np.zeros(n)
+    for j in xrange(n):
+        tevent = event_pulse(dtpop, npe0, scinttau, jittersigma, noise,
+                             pulsemodel)
+        xtot[j] = time_reach_threshold(tevent.t, tevent.p, fthreshold)
+    return xtot
+
+def draw_pulse_samples(ax, dtpop, npe0, scinttau, jittersigma, noise, 
+                       pulsemodel, n, **kwargs):
+    '''
+    Draw *n* sample event pulse curves
+    *ax* : plot axis
+    Other arguments are the same as timing_samples
+    '''
+    for j in xrange(n):
+        tevent = event_pulse(dtpop, npe0, scinttau, jittersigma, noise,
+                             pulsemodel)
+        ax.plot(tevent.t, tevent.p, **kwargs)
+    ax.plot([tevent.t[0], tevent.t[-1]], [0,0], 'k')
+    ax.set_xlabel('ns', fontsize='large')
+    #ax.set_ylabel('arbitrary unit', fontsize='large')
+    return ax

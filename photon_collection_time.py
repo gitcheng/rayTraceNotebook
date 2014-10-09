@@ -173,7 +173,18 @@ for i, crys in enumerate([chex_lyso, chex_baf2, chex_csi, cpet_lyso, cpet_baf2, 
 
 # <markdowncell>
 
-# <h2>Generate photons</h2>
+# <h2>Jobs below are now in separate scripts</h2>
+# 
+# E.g., time_baf2_hex_G1.py, time_lyso_pet_G2.py, etc.
+
+# <headingcell level=3>
+
+# ============================================================================
+# 
+# ============================================================================
+
+# <codecell>
+
 
 # <markdowncell>
 
