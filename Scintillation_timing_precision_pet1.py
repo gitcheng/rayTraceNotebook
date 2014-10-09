@@ -3,53 +3,15 @@
 
 # <markdowncell>
 
-# <h1>Scintillation timing precision for hexagonal-cross-section crystal bars</h1>
-
-# <markdowncell>
-
-# Major contributions to scintillation detector timing precision are [Phys. Med. Biol. 59 (2014) 3261]:
+# <h1>Scintillation timing precision for small crystals</h1>
 # 
-# 1. Depth of interaction (DOI): incident particle speed is different from optical photon speed in the scintillator
-# 2. Scintillator rise time
-# 3. Scintillator decay tie
-# 4. Optical photon time dispersion due to variation in path length
-# 5. Number of photoelectrons detected
-# 6. Photodetector time jitter (time diffrence between the creation of the p.e. and the signal pulse)
-# 7. Electronic noise
-# 8. Trigger threshold model
-# 
-# The simulation of ray-tracing with a shower profile includes effects (1. DOI) and (4. time dispersion). The Poisson statistics (5.) can be easily achieved by random sampling. Scintillator rise/decay time (2., 3.) can be modeled with exponentials. Photodetector time jitter (6.) can be model with a Gaussian.
+# See the introduction in <b>Scintillation_timinig_precision_hex1.ipynb</b>.
 
 # <markdowncell>
 
 # $\newcommand{\Npe}{N_{\rm p.e.}}
 # \newcommand{\Npehat}{\hat{N}_{\rm p.e.}}
 # $
-
-# <markdowncell>
-
-# <h2>Event timing precision</h2>
-# 
-# <h3>Simulate one event of incident particle</h3>
-# 
-# 1. Given $\Npehat$ the expected number of detected p.e. (energy times p.e./MeV), $\Npe = {\rm Poisson}(\Npe)$.
-# 2. Random sample $\Npe$ arrival times from ray-tracing simulation
-# 3. Convolve with the scintillator decay time $e^{-t/\tau_d}$ (ignoring the scintilattor rise time, which is much smaller than the decay time).
-# 4. Convolve with the photodetector time jitter, modeled by a Gaussian.
-# 5. Convolve with the photodetector pulse shape model.
-# 6. Electronic noise (how?)
-# 
-# <h3>Event timing</h3>
-# 
-# Set a threshold. Find the point at which the pulse height is the closest the threshold. Use 10 points around that point to fit a linear function and solve for the time at the threshold
-# 
-# <h3>Precision</h3>
-# 
-# Repeat above steps. Study event timing distribution.
-
-# <markdowncell>
-
-# <h2> Sample </h2>
 
 # <codecell>
 
@@ -73,30 +35,27 @@ import pickle
 
 # <h2>Geometry</h2>
 # 
-# Three crystals: BaF2, LYSO, and CsI bars with a hexagonal cross section. The length is approximately proportional to the radiation length. The cross sections are the same for all three crystals.
+# Three crystals: BaF2, LYSO, and CsI of the exactly the same geometry: 1cm x 1cm x 2cm
 # 
 # Defined in geometry_collection_1.py
 # 
-# Length: BaF2 20 cm; LYSO 11 cm;  CsI 19 cm.<br>
-# Width of the hexagon (distance between opposite parallel edges)= 3.3 cm.
-# 
-# Sensors: two 1 cm by 1 cm photosensors.
+# Sensors: one 5mm x 5mm photosensor.
 
 # <codecell>
 
-fig= plt.figure(figsize=(10,10))
+fig= plt.figure(figsize=(10,4))
 titles= ['LYSO', 'BaF2', 'CsI']
-for i, crys in enumerate([chex_lyso, chex_baf2, chex_csi]):
+for i, crys in enumerate([cpet_lyso, cpet_baf2, cpet_csi]):
     ax = fig.add_subplot(131+i, projection='3d')
     ax.set_title(titles[i])
-    draw_one_crystal(ax, crys)
+    draw_one_crystal(ax, crys, xr=1.0, yr=1.0, zr=2.5, nbins=3, elev=10)
 
 # <codecell>
 
 # The timing population to sample from
-baf2pop = np.load('../data/timing/ts_baf2_hex_33_200_n200k_0001.npy')
-lysopop = np.load('../data/timing/ts_lyso_hex_33_110_n1000k_0001.npy')
-csipop = np.load('../data/timing/ts_csi_hex_33_190_n200k_0001.npy')
+baf2pop = np.load('../data/timing/ts_baf2_pet_1_1_2_n100k_0001.npy')
+lysopop = np.load('../data/timing/ts_lyso_pet_1_1_2_n500k_0001.npy')
+csipop = np.load('../data/timing/ts_csi_pet_1_1_2_n100k_0001.npy')
 print 'Population BaF2: ' , len(baf2pop)
 print 'Population LYSO: ' , len(lysopop)
 print 'Population CsI:  ' , len(csipop)
@@ -237,7 +196,7 @@ result['npelist'] = pelist
 
 # <codecell>
 
-pickle.dump(result, open('../data/timing/tprecision_hex_1.p', 'wb'))
+pickle.dump(result, open('../data/timing/tprecision_pet_1.p', 'wb'))
 
 # <codecell>
 
@@ -245,7 +204,7 @@ result.keys()
 
 # <codecell>
 
-plt.plot(result['npelist'], result['BaF2:SL-APD9mm'], 'bo')
+plt.plot(result['npelist'], result['BaF2:SL-APD3mm'], 'bo')
 plt.xscale('log')
 plt.yscale('log')
 

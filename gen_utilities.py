@@ -31,15 +31,17 @@ def gen_gamma_func_shower1(z1, z2, rmax, size):
     ypos= rmax*rdis * np.sin(phis)
     return np.array(zip(xpos, ypos, zpos[:size]))
 
-def draw_one_crystal(ax, crystal, photon=None):
-    ax.view_init(elev= 5, azim=40)
+def draw_one_crystal(ax, crystal, xr=3, yr=3, zr= 22, nbins=5, 
+                     elev=5, azim=40, photon=None):
+    ax.view_init(elev= elev, azim= azim)
     crystal.draw(ax, photon)
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
-    ax.set_xlim(-3,3)
-    ax.set_ylim(-3,3)
-    ax.set_zlim(0,22)
-    ax.set_xticks([-2,0,2])
-    ax.set_yticks([-2,0,2])
+    ax.set_xlim(-xr,xr)
+    ax.set_ylim(-yr,yr)
+    ax.set_zlim(0,zr)
+    ax.locator_params(tight=True, nbins=nbins)
+#    ax.set_xticks([-2,0,2])
+#    ax.set_yticks([-2,0,2])
 

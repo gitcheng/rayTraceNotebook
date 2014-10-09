@@ -180,23 +180,14 @@ def time_reach_threshold(xt, pulse, fthreshold):
     threshold = pulse.max() * fthreshold
     # rising part
     prise = pulse[:idxmax]
+    if len(prise)==0:
+        return None
     # find the point near the threshold
+
     jt = find_nearest_index(prise, threshold)
     j1 = max(0, jt-5)
     j2 = min(jt+5, idxmax)
     return interpolinear(threshold, xt[j1:j2], prise[j1:j2])
-
-
-    if jt >= len(prise)-1:
-        return xt[jt]
-
-    k1, k2 = jt, jt+1
-    if prise[jt]>threshold:
-        k1, k2 = jt-1, jt
-
-    return xt[jt]
-
-    #return interpo(threshold, xt[k1], xt[k2], prise[k1], prise[k2])
 
 
 def timing_samples(dtpop, npe0, scinttau, jittersigma, pulsemodel, noise,
@@ -215,10 +206,14 @@ def timing_samples(dtpop, npe0, scinttau, jittersigma, pulsemodel, noise,
     *n* : number of event samples
     '''
     xtot = np.zeros(n)
+    tot = None
     for j in xrange(n):
-        tevent = event_pulse(dtpop, npe0, scinttau, jittersigma, noise,
-                             pulsemodel)
-        xtot[j] = time_reach_threshold(tevent.t, tevent.p, fthreshold)
+        while tot is None:
+            tevent = event_pulse(dtpop, npe0, scinttau, jittersigma, noise,
+                                 pulsemodel)
+            tot= time_reach_threshold(tevent.t, tevent.p, fthreshold)
+        xtot[j] = tot
+        tot = None
     return xtot
 
 def draw_pulse_samples(ax, dtpop, npe0, scinttau, jittersigma, noise, 
