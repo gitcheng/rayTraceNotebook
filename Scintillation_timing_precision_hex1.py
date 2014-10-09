@@ -213,19 +213,37 @@ apdnames = ['SL-APD9mm', 'SL-APD3mm', 'Std-APD9mm']
 
 result= {}
 result_err= {}
-for npe in pelist:
-    for i in xrange(len(dtpoplist)):
-        for j in xrange(len(apdlist)):
-            key = '%s:%s:%d'%(crysnames[i],apdnames[j],npe)
+for i in xrange(len(dtpoplist)):
+    for j in xrange(len(apdlist)):
+        key = '%s:%s'%(crysnames[i],apdnames[j])
+        tpres = []
+        tpres_err = []
+        for npe in pelist:
             tot= timing_samples(dtpoplist[i], npe, staulist[i], jittersigma= 0.2, pulsemodel= apdlist[j], noise=0,
                                 fthreshold = fthreshold, n= 1000)
             rms= np.sqrt(tot.var())
-            result[key]= rms
-            result_err[key]= rms/np.sqrt(2*len(tot))
+            tpres.append(rms)
+            tpres_err.append(rms/np.sqrt(2*len(tot)))
+        result[key]= np.array(tpres)
+        result_err[key]= np.array(tpres_err)
+
+# <codecell>
+
+result['npelist'] = pelist
 
 # <codecell>
 
 np.save('../data/timing/tprecision_hex_1.npy', result)
+
+# <codecell>
+
+result.keys()
+
+# <codecell>
+
+plt.plot(result['npelist'], result['BaF2:SL-APD9mm'], 'bo')
+plt.xscale('log')
+plt.yscale('log')
 
 # <codecell>
 
