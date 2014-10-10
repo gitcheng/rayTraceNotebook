@@ -251,4 +251,59 @@ plt.yscale('log')
 
 # <codecell>
 
+print result['BaF2:SL-APD9mm']
+
+# <codecell>
+
+from iminuit import Minuit
+from probfit import Chi2Regression
+
+# <codecell>
+
+x= np.array(result['npelist'])
+y= result['BaF2:SL-APD9mm']
+ey= result['BaF2:SL-APD9mm_err']
+
+# <codecell>
+
+def poly1(x, a, b):
+    return a*x + b
+
+# <codecell>
+
+print np.log(x)
+
+# <codecell>
+
+x2reg = Chi2Regression(poly1, np.log(x), np.log(y), error= ey/y)
+
+# <codecell>
+
+mnt = Minuit(x2reg, print_level=1, a=-0.5, b=1.0, error_a=1, error_b=1)
+mnt.migrad()
+mnt.hesse()
+
+# <codecell>
+
+a= mnt.values['a']
+b= mnt.values['b']
+print mnt.values
+
+# <codecell>
+
+plt.plot(x, y, 'bo')
+plt.plot(x, np.exp(b)*np.power(x, a), 'g-')
+plt.xscale('log')
+plt.yscale('log')
+
+# <codecell>
+
+from fit_utilities import *
+
+# <codecell>
+
+fit_power_law(x, y, ey)
+
+# <codecell>
+
 

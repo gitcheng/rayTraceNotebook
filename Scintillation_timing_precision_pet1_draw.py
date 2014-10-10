@@ -58,4 +58,64 @@ ax.get_yaxis().set_major_formatter(ScalarFormatter())
 
 # <codecell>
 
+fig.savefig('../plots/timing_dependence_on_pe_pet1.pdf')
+
+# <markdowncell>
+
+# <h2>Fit a power law dependence</h2>
+# 
+# $p(N) = B \cdot N^a$
+
+# <codecell>
+
+from fit_utilities import *
+
+# <codecell>
+
+Bfactors= {}
+apowers= {}
+
+# <codecell>
+
+# Do fits here
+for cn in crysnames:
+    for apd in apdnames:
+        key= '%s:%s'%(cn, apd)
+        values, errors = fit_power_law(result['npelist'][1:], result[key][1:]*1e3, result[key+'_err'][1:]/result[key][1:])
+        Bfactors[key] = np.exp(values['b'])
+        apowers[key] = values['a']
+
+# <codecell>
+
+def print_table(d, digits=0):
+    print '%4s'%'',
+    for apd in apdnames:
+        print '%10s'%apd,
+    print
+    fmt = '%%10.%df'%digits
+    for cn in crysnames:
+        print '%4s'%cn,
+        for apd in apdnames:
+            key= '%s:%s'%(cn, apd)
+            print fmt%d[key],
+        print
+
+# <markdowncell>
+
+# The $B$ factor in $p(N) = B \cdot N^a$ 
+
+# <codecell>
+
+print_table(Bfactors)
+
+# <markdowncell>
+
+# The power $a$.
+
+# <codecell>
+
+print_table(apowers, digits=2)
+
+# <codecell>
+
 

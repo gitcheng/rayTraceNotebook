@@ -185,6 +185,9 @@ for i, crys in enumerate([chex_lyso, chex_baf2, chex_csi, cpet_lyso, cpet_baf2, 
 
 # <codecell>
 
+# Gamma function
+z= rand.gamma(3.5, 2, 1000000)
+plt.hist(z, bins=100, histtype='step');
 
 # <markdowncell>
 
