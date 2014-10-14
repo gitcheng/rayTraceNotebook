@@ -27,12 +27,12 @@ import numpy as np
 # $\sigma$ of reflection = 0.1 degree<br>
 # 
 # If the photon is transmitted out of the crystal and hit the wrapper:
-# Random reflaction probability = 0.10<br>
-# Diffused reflection probability = 0.89<br>
-# $\sigma$ of diffused reflection = 20 degrees<br>
+# * 10% probability of random reflaction
+# * 89% probability of diffused reflection: $\sigma$ of diffused reflection = 20 degrees
+# * 1% probability of absorption (disappearance)
 # 
-# For photons reflecting in the sensor area<br>
-# Assume photons going from crystal (LYSO $n=1.82$ or BaF2 $n=1.47$, or CsI $n=1.79$) to glass ($n= 1.52$) or air ($n= 1.0$).
+# For photons hitting in the sensor area:
+# * Assume photons going from crystal (LYSO $n=1.82$ or BaF2 $n=1.47$, or CsI $n=1.79$) to glass ($n= 1.52$).
 
 # <codecell>
 
