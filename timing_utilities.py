@@ -19,7 +19,8 @@ def sim_timing(crystal, allpos, t0origin, mfp=170, seed=0, print_prog=False):
     '''
     start= time.time()
     rand.seed(seed)
-    timings=[]
+    timings= []
+    startpos= []
     nums= len(allpos)
     for j,pos in enumerate(allpos):
         if print_prog and (j+1)%(nums/10)==0:
@@ -37,8 +38,12 @@ def sim_timing(crystal, allpos, t0origin, mfp=170, seed=0, print_prog=False):
         if photon.lastplane is None: continue
         if photon.lastplane.sensitive:
             timings.append(photon.t)
+            startpos.append(photon.startx)
 
-    return np.array(timings)
+    startpos= np.array(startpos)
+    zips= zip(timings, startpos[:,0], startpos[:,1], startpos[:,2])
+    return np.array(zips, dtype=[('t', '<f8'), ('x0', '<f8'), ('y0', '<f8'),
+                                 ('z0', '<f8')])
 
 
 def sample_arrival_times(dtpop, npe):

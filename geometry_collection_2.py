@@ -11,7 +11,7 @@
 
 # <codecell>
 
-%matplotlib inline
+#%matplotlib inline
 
 # <codecell>
 
