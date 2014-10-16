@@ -42,5 +42,5 @@ for mat in ['lyso','baf2','csi']:
             f.write(script)
             f.close()
 
-            print 'bsub -q xlong -R rhel60 -oo %s python scripts/%s'%(logname, scriptname)
+            print 'bsub -q xlong -R rhel60 -oo %s python %s'%(logname, scriptname)
 
