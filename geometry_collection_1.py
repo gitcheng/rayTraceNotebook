@@ -12,11 +12,11 @@
 # <codecell>
 
 #%matplotlib inline
+#import matplotlib.pyplot as plt
 
 # <codecell>
 
 import numpy as np
-import matplotlib.pyplot as plt
 from pycrysray import *
 from surface_collection_1 import *
 from gen_utilities import *
