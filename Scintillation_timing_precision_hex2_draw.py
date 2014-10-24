@@ -108,7 +108,7 @@ fig.savefig('../plots/timing_dependence_on_pe_hexcolls2_sl9mm_polvrough.pdf')
 
 # <h2>Fit a power law dependence</h2>
 # 
-# $p(N) = B \cdot N^a$
+# $p(N) = B \cdot (N/100)^a$
 
 # <codecell>
 
@@ -118,14 +118,28 @@ from fit_utilities import *
 
 Bfactors= {}
 apowers= {}
+Bferrors= {}
+aperrors= {}
 
 # <codecell>
 
 # Do fits here
 for key in dkeys:
-    values, errors = fit_power_law(result['npelist'][2:], result[key][2:]*1e3, result[key+'_err'][2:]/result[key][2:])
-    Bfactors[key] = np.exp(values['b'])
+    # Ignore the first two points
+    npe100= np.array(result['npelist'][2:])/100.0  # number of photoelectrons in multiple of 100
+    rmsps= result[key][2:]*1e3   # precision in picoseconds
+    error= result[key+'_err'][2:]*1e3 # error in picoseconds  ##/result[key][2:]
+    values, errors = fit_power_lawab(npe100, rmsps, error)
+    Bfactors[key] = values['b']
+    Bferrors[key] = errors['b']
     apowers[key] = values['a']
+    aperrors[key] = errors['a']
+
+# Do fits here
+#for key in dkeys:
+#    values, errors = fit_power_law(result['npelist'][2:], result[key][2:]*1e3, result[key+'_err'][2:]/result[key][2:])
+#    Bfactors[key] = np.exp(values['b'])
+#    apowers[key] = values['a']
 
 # <codecell>
 
@@ -134,26 +148,26 @@ print cnames
 
 # <codecell>
 
-def print_table(d, digits=0):
+def print_table(d, e, digits=0):
     print '%4s'%'',
     for apd in apdnames:
         print '%10s'%apd,
     print
-    fmt = '%%10.%df'%digits
+    fmt = '$%%.%df\\pm%%.%df$'%(digits,digits)
     for mat in ['baf2','lyso','csi']:
         print '%4s'%cnames[mat],
         for tag,apd in zip(['po9','po3','po9'], apdnames):
             key= '%s%s:%s'%(mat,tag, apd)
-            print fmt%d[key],
+            print fmt%(d[key],e[key]),
         print
 
 # <markdowncell>
 
-# The $B$ factor in $p(N) = B \cdot N^a$ 
+# The $B$ factor in $p(N) = B \cdot (N/100)^a$ 
 
 # <codecell>
 
-print_table(Bfactors)
+print_table(Bfactors, Bferrors)
 
 # <markdowncell>
 
@@ -161,7 +175,7 @@ print_table(Bfactors)
 
 # <codecell>
 
-print_table(apowers, digits=2)
+print_table(apowers, aperrors, digits=3)
 
 # <codecell>
 

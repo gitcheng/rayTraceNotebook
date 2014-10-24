@@ -21,6 +21,11 @@ import pickle
 
 # <codecell>
 
+%load_ext autoreload
+%autoreload 2
+
+# <codecell>
+
 result= pickle.load(open('../data/timing/tprecision_rect_geocolls2.p','rb'))
 
 # <codecell>
@@ -101,7 +106,7 @@ fig.savefig('../plots/timing_dependence_on_pe_rectcolls2_ruf.pdf')
 
 # <h2>Fit a power law dependence</h2>
 # 
-# $p(N) = B \cdot N^a$
+# $p(N) = B \cdot (N/100)^a$
 
 # <codecell>
 
@@ -111,14 +116,22 @@ from fit_utilities import *
 
 Bfactors= {}
 apowers= {}
+Bferrors= {}
+aperrors= {}
 
 # <codecell>
 
 # Do fits here
 for key in dkeys:
-    values, errors = fit_power_law(result['npelist'][2:], result[key][2:]*1e3, result[key+'_err'][2:]/result[key][2:])
-    Bfactors[key] = np.exp(values['b'])
+    # Ignore the first two points
+    npe100= np.array(result['npelist'][2:])/100.0  # number of photoelectrons in multiple of 100
+    rmsps= result[key][2:]*1e3   # precision in picoseconds
+    error= result[key+'_err'][2:]*1e3 # error in picoseconds  ##/result[key][2:]
+    values, errors = fit_power_lawab(npe100, rmsps, error)
+    Bfactors[key] = values['b']
+    Bferrors[key] = errors['b']
     apowers[key] = values['a']
+    aperrors[key] = errors['a']
 
 # <codecell>
 
@@ -126,25 +139,25 @@ print cnames
 
 # <codecell>
 
-def print_table(d, digits=0):
+def print_table(d, e, digits=0):
     print '%4s'%'',
     print '%10s%10s%10s'%('1 cm','2 cm', '3 cm'),
     print
-    fmt = '%%10.%df'%digits
+    fmt = '$%%.%df\\pm%%.%df$'%(digits,digits)
     for mat in ['baf2','lyso','csi']:
         print '%4s'%cnames[mat],
         for tag in ['po1','po2','po3']:
             key= '%s%s:%s'%(mat,tag, apdname)
-            print fmt%d[key],
+            print fmt%(d[key],e[key]),
         print
 
 # <markdowncell>
 
-# The $B$ factor in $p(N) = B \cdot N^a$ 
+# The $B$ factor in $p(N) = B \cdot (N/100)^a$ 
 
 # <codecell>
 
-print_table(Bfactors)
+print_table(Bfactors, Bferrors, digits=1)
 
 # <markdowncell>
 
@@ -152,7 +165,11 @@ print_table(Bfactors)
 
 # <codecell>
 
-print_table(apowers, digits=2)
+print_table(apowers, aperrors, digits=3)
+
+# <codecell>
+
+np.power(2,3)
 
 # <codecell>
 

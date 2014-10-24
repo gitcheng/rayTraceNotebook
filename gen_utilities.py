@@ -31,16 +31,33 @@ def gen_gamma_func_shower1(z1, z2, rmax, size):
     ypos= rmax*rdis * np.sin(phis)
     return np.array(zip(xpos, ypos, zpos[:size]))
 
-def draw_one_crystal(ax, crystal, xr=3, yr=3, zr= 22, nbins=5, 
-                     elev=5, azim=40, photon=None):
+def draw_one_crystal(ax, crystal, xlim=(-3,3), ylim=(-3,3), zlim=(0,22),
+                     nbins=5, elev=5, azim=40, photon=None, crystal_color='b',
+                     sensor_color='orange', photon_color='g', xlabel='x',
+                     ylabel='y', zlabel='z'):
+    '''
+    Draw one crystal in 3D.
+    *ax*: An axis instance with projection='3d'. E.g., fig.add_subplot(111,projection='3d')
+    *crystal*: An instance of Crystal class
+    *photon*: An instance of Photon class to be drawn.
+    *xlim*, *ylim*, *zlim*: the limits in three coordinates.
+    *crystal_color*: the color of crystal edges
+    *sensor_color*: the color of sensor edges
+    *photon_color*: the color of photon path
+    *nbins*: the number of divisions by markers in the coordinates
+    *elev*: elevation angle
+    *azim*: azimuthal angle
+    '''
+
     ax.view_init(elev= elev, azim= azim)
-    crystal.draw(ax, photon)
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
-    ax.set_xlim(-xr,xr)
-    ax.set_ylim(-yr,yr)
-    ax.set_zlim(0,zr)
+    crystal.draw(ax, photon, crystal_color=crystal_color,
+                 sensor_color=sensor_color, photon_color=photon_color)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_zlabel(zlabel)
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    ax.set_zlim(zlim)
     ax.locator_params(tight=True, nbins=nbins)
 #    ax.set_xticks([-2,0,2])
 #    ax.set_yticks([-2,0,2])
