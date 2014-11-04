@@ -8,6 +8,13 @@ from pycrysray import *
 
 rand = np.random
 
+def similar(a, epsilon=1e-12):
+    '''
+    Return True if a.max()-a.min()<epsilon.
+    '''
+    aa = np.array(a)
+    return aa.max()-aa.min()<epsilon
+
 def sim_timing(crystal, allpos, t0origin, mfp=170, seed=0, print_prog=False):
     '''
     Do the ray-tracing on in the crystal given the initial positions
@@ -141,6 +148,28 @@ def fill_gaps(x, y, ndivs=10, dtype=None):
 def fill_pmodel_gaps(pmodel, ndivs):
     return fill_gaps(pmodel.t, pmodel.p, ndivs, pmodel.dtype)
 
+def convolve_two_pulse_model(pm1, pm2):
+    '''
+    Convolve two pulse models.
+    *pm1*, *pm2*: recarrays with fields 't' and 'p' to model a pulse
+    Return a recarray with the same fields after convolving the two shapes.
+    The returned pulse covers the same time range as *pm1*.
+    '''
+    # make sure both models have the same (uniform) time spacing
+    dt1 = (pm1.t[1:]-pm1.t[:-1])
+    dt2 = (pm2.t[1:]-pm2.t[:-1])
+    if not similar([dt1,dt2]):
+        raise ValueError('The two models have different time spacing')
+    # binwidth
+    bw= dt1.mean()
+    
+    dtconv= np.convolve(pm1.p, pm2.p)[:len(pm1)] * bw
+    # build a recarray
+    retval= np.array(zip(pm1.t, dtconv), dtype=pm1.dtype).view(np.recarray)
+    retval= retval[(retval.t>=pm1.t[0])&(retval.t<=pm1.t[-1])]
+    return retval.view(np.recarray)
+
+
 def convolve_pulse_model(dt, pulsemodel):
     '''
     *dt* : an array of timing values of N photoelectrons
@@ -152,11 +181,16 @@ def convolve_pulse_model(dt, pulsemodel):
     '''
     # Remove t<0
     pm = pulsemodel[pulsemodel.t>=0]
+    # check t bins
+    if not similar(pm.t[1:]-pm.t[:-1]):
+        raise ValueError('Time spacing is not uniform')
+    bw= (pm.t[1:]-pm.t[:-1]).mean()
+
     # Fill dt to a histogram.
     bins = make_bins(pm.t)
     hdt, be = np.histogram(dt, bins=bins)
     # convolve
-    dtconv = np.convolve(hdt, pm.p)[:len(pm)]
+    dtconv = np.convolve(hdt, pm.p)[:len(pm)] * bw
     # build a recarray
     retval= np.array(zip(pm.t, dtconv), dtype=pm.dtype).view(np.recarray)
     retval = retval[(retval.t>=pm.t[0])&(retval.t<=pm.t[-1])].view(np.recarray)
@@ -305,3 +339,7 @@ def draw_pulse_samples(ax, dtpop, npe0, scinttau, jittersigma, noise,
     ax.set_xlabel('ns', fontsize='large')
     #ax.set_ylabel('arbitrary unit', fontsize='large')
     return ax
+
+
+def pulse_shape_simple(x, tauR, tauD, A):
+    return A* (np.exp(-x/tauD)-np.exp(-x/tauR))/float(tauD-tauR)

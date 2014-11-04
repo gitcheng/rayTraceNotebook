@@ -26,7 +26,7 @@ import pickle
 
 # <codecell>
 
-result= pickle.load(open('../data/timing/tprecision_rect_geocolls2.p','rb'))
+result= pickle.load(open('../data/timing/tprecision_rect_preamp_geocolls2.p'))
 
 # <codecell>
 
@@ -143,7 +143,7 @@ def print_table(d, e, digits=0):
     print '%4s'%'',
     print '%10s%10s%10s'%('1 cm','2 cm', '3 cm'),
     print
-    fmt = '$%%.%df\\pm%%.%df$'%(digits,digits)
+    fmt = ' & $%%.%df\\pm%%.%df$'%(digits,digits)
     for mat in ['baf2','lyso','csi']:
         print '%4s'%cnames[mat],
         for tag in ['po1','po2','po3']:

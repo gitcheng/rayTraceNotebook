@@ -127,6 +127,10 @@ slapd3mm = pulse_model('../data/SLAPD_RiseTime_20140926.csv', 'time_ns', 'slapd3
 slapd9mm = fill_pmodel_gaps(slapd9mm, ndivs=5)
 stdapd9mm = fill_pmodel_gaps(stdapd9mm, ndivs=5)
 slapd3mm = fill_pmodel_gaps(slapd3mm, ndivs=5)
+# t>=0
+slapd9mm = slapd9mm[slapd9mm.t>0]
+slapd3mm = slapd3mm[slapd3mm.t>0]
+stdapd9mm = stdapd9mm[stdapd9mm.t>0]
 
 # <codecell>
 
@@ -137,8 +141,40 @@ plt.xlim(0,200)
 plt.ylim(-0.2,1.1)
 plt.plot([0,200],[0,0], 'k-')
 plt.legend()
-plt.xlabel('ns')
-plt.title('APD response time')
+plt.xlabel('ns');
+plt.title('APD response time');
+
+# <codecell>
+
+def pulse_shape_simple(x, tauR, tauD, A):
+    return A* (np.exp(-x/tauD)-np.exp(-x/tauR))
+
+# <codecell>
+
+t= slapd9mm.t
+ps= pulse_shape_simple(t, 6.0, 15.0, 1.0)
+pream= np.array(zip(t,ps), dtype=slapd9mm.dtype).view(np.recarray)
+plt.plot(pream.t, pream.p)
+plt.title('Preamp model');
+plt.xlabel('ns');
+
+# <codecell>
+
+pmslapd9mm= convolve_two_pulse_model(slapd9mm, pream)
+pmslapd3mm= convolve_two_pulse_model(slapd3mm, pream)
+pmstdapd9mm= convolve_two_pulse_model(stdapd9mm, pream)
+
+# <codecell>
+
+plt.plot(pmslapd9mm.t, pmslapd9mm.p/pmslapd9mm.p.max(), label='SL-APD 9mm');
+plt.plot(pmslapd9mm.t, pmstdapd9mm.p/pmstdapd9mm.p.max(), label='STD-APD 9mm');
+plt.plot(pmslapd9mm.t, pmslapd3mm.p/pmslapd3mm.p.max(), label='SL-APD 3mm');
+plt.xlim(0,200)
+plt.ylim(-0.2,1.1)
+plt.plot([0,200],[0,0], 'k-')
+plt.legend()
+plt.xlabel('ns');
+plt.title('APD+Preamp response time');
 
 # <markdowncell>
 
@@ -172,11 +208,11 @@ def draw_one_set(ax, dtpop, scinttau, npe0, pulsemodel, title):
 
 fig= plt.figure(figsize=(12,3.5))
 ax= fig.add_subplot(131)
-draw_one_set(ax, hexdata['baf2po9'].t, tau_baf2, npe_baf2, slapd9mm, 'BaF2')
+draw_one_set(ax, hexdata['baf2po9'].t, tau_baf2, npe_baf2, pmslapd9mm, 'BaF2')
 ax= fig.add_subplot(132)
-draw_one_set(ax, hexdata['lysopo9'].t, tau_lyso, npe_lyso, slapd9mm, 'LYSO')
+draw_one_set(ax, hexdata['lysopo9'].t, tau_lyso, npe_lyso, pmslapd9mm, 'LYSO')
 ax= fig.add_subplot(133)
-draw_one_set(ax, hexdata['csipo9'].t, tau_csi, npe_csi, slapd9mm, 'CsI')
+draw_one_set(ax, hexdata['csipo9'].t, tau_csi, npe_csi, pmslapd9mm, 'CsI')
 
 # <markdowncell>
 
@@ -186,11 +222,11 @@ draw_one_set(ax, hexdata['csipo9'].t, tau_csi, npe_csi, slapd9mm, 'CsI')
 
 fig= plt.figure(figsize=(12,3.5))
 ax= fig.add_subplot(131)
-draw_one_set(ax, hexdata['baf2po3'].t, tau_baf2, npe_baf2, slapd3mm, 'BaF2')
+draw_one_set(ax, hexdata['baf2po3'].t, tau_baf2, npe_baf2, pmslapd3mm, 'BaF2')
 ax= fig.add_subplot(132)
-draw_one_set(ax, hexdata['lysopo3'].t, tau_lyso, npe_lyso, slapd3mm, 'LYSO')
+draw_one_set(ax, hexdata['lysopo3'].t, tau_lyso, npe_lyso, pmslapd3mm, 'LYSO')
 ax= fig.add_subplot(133)
-draw_one_set(ax, hexdata['csipo3'].t, tau_csi, npe_csi, slapd3mm, 'CsI')
+draw_one_set(ax, hexdata['csipo3'].t, tau_csi, npe_csi, pmslapd3mm, 'CsI')
 
 # <markdowncell>
 
@@ -200,11 +236,11 @@ draw_one_set(ax, hexdata['csipo3'].t, tau_csi, npe_csi, slapd3mm, 'CsI')
 
 fig= plt.figure(figsize=(12,3.5))
 ax= fig.add_subplot(131)
-draw_one_set(ax, hexdata['baf2po9'].t, tau_baf2, npe_baf2, stdapd9mm, 'BaF2')
+draw_one_set(ax, hexdata['baf2po9'].t, tau_baf2, npe_baf2, pmstdapd9mm, 'BaF2')
 ax= fig.add_subplot(132)
-draw_one_set(ax, hexdata['lysopo9'].t, tau_lyso, npe_lyso, stdapd9mm, 'LYSO')
+draw_one_set(ax, hexdata['lysopo9'].t, tau_lyso, npe_lyso, pmstdapd9mm, 'LYSO')
 ax= fig.add_subplot(133)
-draw_one_set(ax, hexdata['csipo9'].t, tau_csi, npe_csi, stdapd9mm, 'CsI')
+draw_one_set(ax, hexdata['csipo9'].t, tau_csi, npe_csi, pmstdapd9mm, 'CsI')
 
 # <markdowncell>
 
@@ -222,7 +258,7 @@ fthreshold = 0.1
 
 pelist = [10, 30, 100, 300, 1000, 3000, 10000, 30000]
 staudict = dict(baf2= tau_baf2, lyso= tau_lyso, csi= tau_csi)
-apdlist = [slapd9mm, slapd3mm, stdapd9mm]
+apdlist = [pmslapd9mm, pmslapd3mm, pmstdapd9mm]
 apdnames = ['SL-APD9mm', 'SL-APD3mm', 'Std-APD9mm']
 
 # <codecell>
@@ -255,7 +291,7 @@ result['npelist'] = pelist
 
 # <codecell>
 
-pickle.dump(result, open('../data/timing/tprecision_hex_geocolls2.p', 'wb'))
+pickle.dump(result, open('../data/timing/tprecision_hex_preamp_geocolls2.p', 'wb'))
 
 # <codecell>
 

@@ -96,7 +96,7 @@ for mat in ['lyso']:
     for lg in [1,2,3]:
         key = mat+'po'+str(lg)
         ax = fig.add_subplot(131+i, projection='3d')
-        draw_one_crystal(ax, crects[key], xr=0.5, yr=0.5, zr= 3)
+        draw_one_crystal(ax, crects[key], xlim=(-0.5,0.5), ylim=(-0.5,0.5), zlim=(0,3))
         i+= 1
 
 # <codecell>
@@ -119,8 +119,22 @@ for mat in ['lyso','baf2','csi']:
 
 slapd3mm = pulse_model('../data/SLAPD_RiseTime_20140926.csv', 'time_ns', 'slapd3mm', normtype='peak')
 # linear interpolation to fill in points in the model curve
-apdmodel = fill_pmodel_gaps(slapd3mm, ndivs=5)
+slapd3mm = fill_pmodel_gaps(slapd3mm, ndivs=5)
+slapd3mm = slapd3mm[slapd3mm.t>=0]
 #apdmodel = slapd3mm
+
+# <codecell>
+
+t= slapd3mm.t
+ps= pulse_shape_simple(t, 6.0, 15.0, 1.0)
+pream= np.array(zip(t,ps), dtype=slapd3mm.dtype).view(np.recarray)
+plt.plot(pream.t, pream.p)
+plt.title('Preamp model');
+plt.xlabel('ns');
+
+# <codecell>
+
+apdmodel= convolve_two_pulse_model(slapd3mm, pream)
 
 # <markdowncell>
 
@@ -251,7 +265,7 @@ result['npelist'] = pelist
 
 # <codecell>
 
-pickle.dump(result, open('../data/timing/tprecision_rect_geocolls2.p', 'wb'))
+pickle.dump(result, open('../data/timing/tprecision_rect_preamp_geocolls2.p', 'wb'))
 
 # <codecell>
 

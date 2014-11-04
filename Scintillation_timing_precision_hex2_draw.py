@@ -21,7 +21,7 @@ import pickle
 
 # <codecell>
 
-result= pickle.load(open('../data/timing/tprecision_hex_geocolls2.p','rb'))
+result= pickle.load(open('../data/timing/tprecision_hex_preamp_geocolls2.p','rb'))
 
 # <codecell>
 
@@ -153,7 +153,7 @@ def print_table(d, e, digits=0):
     for apd in apdnames:
         print '%10s'%apd,
     print
-    fmt = '$%%.%df\\pm%%.%df$'%(digits,digits)
+    fmt = ' & $%%.%df\\pm%%.%df$'%(digits,digits)
     for mat in ['baf2','lyso','csi']:
         print '%4s'%cnames[mat],
         for tag,apd in zip(['po9','po3','po9'], apdnames):

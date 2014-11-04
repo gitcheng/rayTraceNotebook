@@ -17,6 +17,11 @@ import pickle
 
 # <codecell>
 
+%load_ext autoreload
+%autoreload 2
+
+# <codecell>
+
 hexdata= {}
 for mat in ['lyso','baf2','csi']:
     for sur in ['po','ra']:
@@ -117,9 +122,43 @@ slapd9mm = fill_pmodel_gaps(slapd9mm, ndivs=5)
 stdapd9mm = fill_pmodel_gaps(stdapd9mm, ndivs=5)
 slapd3mm = fill_pmodel_gaps(slapd3mm, ndivs=5)
 
+slapd9mm= slapd9mm[slapd9mm.t>=0]
+slapd3mm= slapd3mm[slapd3mm.t>=0]
+stdapd9mm= stdapd9mm[stdapd9mm.t>=0]
+
 # <codecell>
 
-apdmodel= slapd3mm
+t= slapd9mm.t[slapd9mm.t>=0]
+ps= pulse_shape_simple(t, 6.0, 15.0, 10)
+pream= np.array(zip(t,ps), dtype=slapd9mm.dtype).view(np.recarray)
+plt.plot(pream.t, pream.p)
+plt.title('Preamp model');
+plt.xlabel('ns');
+plt.ylabel('Arbitrary unit')
+plt.savefig('../plots/preamp_model_6_15.pdf')
+
+# <codecell>
+
+pmslapd9mm= convolve_two_pulse_model(slapd9mm, pream)
+pmslapd3mm= convolve_two_pulse_model(slapd3mm, pream)
+pmstdapd9mm= convolve_two_pulse_model(stdapd9mm, pream)
+
+# <codecell>
+
+plt.plot(pmslapd9mm.t, pmslapd9mm.p/pmslapd9mm.p.max(), label='SL-APD 9mm');
+plt.plot(pmslapd9mm.t, pmstdapd9mm.p/pmstdapd9mm.p.max(), label='STD-APD 9mm');
+plt.plot(pmslapd9mm.t, pmslapd3mm.p/pmslapd3mm.p.max(), label='SL-APD 3mm');
+plt.xlim(0,200)
+plt.ylim(-0.2,1.1)
+plt.plot([0,200],[0,0], 'k-')
+plt.legend()
+plt.xlabel('ns');
+plt.title('APD+Preamp response time');
+plt.savefig('../plots/apd_preamp_response_time.pdf')
+
+# <codecell>
+
+apdmodel= pmslapd3mm
 fig= plt.figure(figsize=(12,3.5))
 ax= fig.add_subplot(131)
 draw_one_set(ax, rectdata['baf2po3'].t, tau_baf2, npe_baf2, apdmodel, 'BaF2')
@@ -127,7 +166,7 @@ ax= fig.add_subplot(132)
 draw_one_set(ax, rectdata['lysopo3'].t, tau_lyso, npe_lyso, apdmodel, 'LYSO')
 ax= fig.add_subplot(133)
 draw_one_set(ax, rectdata['csipo3'].t, tau_csi, npe_csi, apdmodel, 'CsI')
-fig.savefig('../plots/event_pulses_rect_geocolls2.pdf')
+fig.savefig('../plots/event_pulses_preamp_rect_geocolls2.pdf')
 
 # <codecell>
 
@@ -136,7 +175,7 @@ npe_baf2 = 1000
 npe_lyso = 20000
 npe_csi = 1000
 
-apdmodel= slapd9mm
+apdmodel= pmslapd9mm
 fig= plt.figure(figsize=(12,3.5))
 ax= fig.add_subplot(131)
 draw_one_set(ax, hexdata['baf2po9'].t, tau_baf2, npe_baf2, apdmodel, 'BaF2')
@@ -144,7 +183,7 @@ ax= fig.add_subplot(132)
 draw_one_set(ax, hexdata['lysopo9'].t, tau_lyso, npe_lyso, apdmodel, 'LYSO')
 ax= fig.add_subplot(133)
 draw_one_set(ax, hexdata['csipo9'].t, tau_csi, npe_csi, apdmodel, 'CsI')
-fig.savefig('../plots/event_pulses_hex_geocolls2.pdf')
+fig.savefig('../plots/event_pulses_preamp_hex_geocolls2.pdf')
 
 # <codecell>
 
