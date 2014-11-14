@@ -62,3 +62,46 @@ def draw_one_crystal(ax, crystal, xlim=(-3,3), ylim=(-3,3), zlim=(0,22),
 #    ax.set_xticks([-2,0,2])
 #    ax.set_yticks([-2,0,2])
 
+
+def read_pulse(t, pulse):
+    # find the closet point
+    idx = (np.abs(pulse.t-t)).argmin()
+    if idx==0 and t<=pulse.t[0]:
+        return pulse.p[0]
+    elif idx==len(pulse.t)-1 and t>=pulse.t[-1]:
+        return pulse.p[-1]
+
+    t1, t2= 0,0
+    p1, p2= 0,0
+    if t>pulse.t[idx]:
+        t1= pulse.t[idx]
+        t2= pulse.t[idx+1]
+        p1= pulse.p[idx]
+        p2= pulse.p[idx+1]
+    else:
+        t1= pulse.t[idx-1]
+        t2= pulse.t[idx]
+        p1= pulse.p[idx-1]
+        p2= pulse.p[idx]
+
+    return p1+ (t-t1)*(p2-p1)/(t2-t1)
+
+
+def digiwaveform(tevent, binwidth, tshift=0):
+    '''
+    Return a digitized waveform of a given interval. The waveform sampling is
+    to find the closest point at a 
+    given interval from the original pulse shape.
+    *tevent* : the densely sampled pulse shape
+    *binwidth* : sampling binwidth
+    *tshift* : a shift (zero to one, meaning a fraction of a bin) in time axis
+    in order to randomize binning effect
+    '''
+    tbins= np.arange(tevent.t.min(), tevent.t.max(), binwidth)
+    tbins= tbins+ tshift*(tbins[1]-tbins[0])
+    
+    pp = np.zeros(len(tbins))
+    for i in xrange(len(pp)):
+        pp[i] = read_pulse(tbins[i],tevent)
+    return np.array(zip(tbins,pp), dtype=tevent.dtype).view(np.recarray)
+

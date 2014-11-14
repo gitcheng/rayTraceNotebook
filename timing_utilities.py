@@ -293,8 +293,17 @@ def time_reach_threshold(xt0, pulse, fthreshold):
 
     jt = find_nearest_index(prise, threshold)
     # select +-0.25 ns region and above certain level, then do linear
-    # interpolation
+    # interpolation. If there are less than 3 points, force it to use
+    # three points
     sel = (xt>=xt[jt]-0.25)&(xt<=xt[jt]+0.25)&(prise>0.2*threshold)
+    if sel.sum()<3:
+        sel = [jt-1, jt, jt+1]
+        if jt+1 >= len(xt):
+            sel = sel[:-1]
+        if jt-1 <= 0:
+            sel = sel[1:]
+    if len(sel) < 2:
+        return xt[jt]
     return interpolinear(threshold, xt[sel], prise[sel])
 
 
@@ -341,5 +350,6 @@ def draw_pulse_samples(ax, dtpop, npe0, scinttau, jittersigma, noise,
     return ax
 
 
-def pulse_shape_simple(x, tauR, tauD, A):
-    return A* (np.exp(-x/tauD)-np.exp(-x/tauR))/float(tauD-tauR)
+def pulse_shape_simple(x, tauR, tauD, A, x0=0):
+    #if x-x0<0: return 0
+    return A* (np.exp(-(x-x0)/tauD)-np.exp(-(x-x0)/tauR))/float(tauD-tauR)
