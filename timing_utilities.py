@@ -17,8 +17,10 @@ def similar(a, epsilon=1e-12):
 
 def sim_timing(crystal, allpos, t0origin, mfp=170, seed=0, print_prog=False):
     '''
-    Do the ray-tracing on in the crystal given the initial positions
+    Do the ray-tracing in the crystal given the initial positions
     of photons. Return a list of times when photons hit the sensor.
+    Return a recdata with t the arrival time and (x0, y0, z0) the starting
+    position of the photon.
     *crystal* : a Crystal
     *allpos* : a 2d array of shape (N, 3) for N space points
     *t0origin* : the position at which t= 0
@@ -54,6 +56,63 @@ def sim_timing(crystal, allpos, t0origin, mfp=170, seed=0, print_prog=False):
     return np.array(zips, dtype=[('t', '<f8'), ('x0', '<f8'), ('y0', '<f8'),
                                  ('z0', '<f8')])
 
+def sim_timing_shower(crystal, shower, nep, t0origin=(0,0,0), shdir=-1,
+                      showerunit= 0.1, mfp= 170, seed= 0, print_prog= False):
+    '''
+    Do the ray-tracing in the crystal given shower data.
+    Return a list of length len(shower). Each element is a recarray of
+    length nep with column names t, x0, y0, z0.
+    *crystal* : a Crystal
+    *shower* : shower data. Each data event contains arrays of hitX, hitY,
+    hitZ, hitEdep.
+    *nep* : number of photons to create per event
+    *toorigin* : the coordinate where the particle hit the crystal.
+    *shdir* : the direction of the particle: +1 or -1 (along the z-axis)
+              in ray-tracing simulation.
+    *showerunit* : the unit length in shower data in cm.
+    *mfp* : mean free path of the photon (in cm).
+    *seed* : random number seed
+    *print_prog* : print progress
+    '''
+    start = time.time()
+    rand.seed(seed)
+    ret = []
+    nums = len(shower)
+    for j in xrange(len(shower)):
+        if print_prog and (j+1)%(nums/10)==0:
+            print '%.0f%%  t=%d s'%(j/float(nums)*100, time.time()-start)
+        event = np.array([(0,)*4]*nep, dtype=[('t', '<f8'), ('x0', '<f8'), ('y0', '<f8'), ('z0', '<f8')])
+        # generate a large set of event id with probability equal to Edep
+        wgts = shower.hitEdep[j]/shower.hitEdep[j].sum()
+        ids = rand.choice(len(wgts), size=100000, replace=True, p=wgts)
+        k = 0
+        while k < nep:
+            id = int(rand.random() * len(ids))
+            x0 = shower.hitX[j][ids[id]] * showerunit
+            y0 = shower.hitY[j][ids[id]] * showerunit
+            z0 = shower.hitZ[j][ids[id]] * showerunit
+            t0 = shower.hitT[j][ids[id]] - shower.hitT[j][0]
+            # transform shower because shower data start at 0,0,0 and in +z
+            # direction.
+            x0 = x0*shdir + t0origin[0]
+            y0 = y0*shdir + t0origin[1]
+            z0 = z0*shdir + t0origin[2]
+            # generate position and direction
+            pos, dp = generate_p6(np.array([x0,y0,z0]), dz=1e-6, dr=1e-6)
+            # create a photon
+            photon = Photon(pos, dp, t=t0, mfp=mfp)
+            #propagate in the crystal
+            pl = photon.propagate(crystal)
+            if photon.status != photon.transmitted: continue
+            if photon.lastplane is None: continue
+            if photon.lastplane.sensitive:
+                event['t'][k] = photon.t
+                event['x0'][k] = photon.startx[0]
+                event['y0'][k] = photon.startx[1]
+                event['z0'][k] = photon.startx[2]
+                k += 1
+        ret.append(event)
+    return ret
 
 def sample_arrival_times(dtpop, npe):
     '''
