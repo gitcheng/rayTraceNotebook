@@ -83,7 +83,11 @@ def sim_timing_shower(crystal, shower, nep, t0origin=(0,0,0), shdir=-1,
             print '%.0f%%  t=%d s'%(j/float(nums)*100, time.time()-start)
         event = np.array([(0,)*4]*nep, dtype=[('t', '<f8'), ('x0', '<f8'), ('y0', '<f8'), ('z0', '<f8')])
         # generate a large set of event id with probability equal to Edep
-        wgts = shower.hitEdep[j]/shower.hitEdep[j].sum()
+        # Need to recast the type to f8 otherwise choice complains the 
+        # normalization is not close enough to one.
+        wgts = np.array(shower.hitEdep[j], dtype='<f8')
+        wgts /= wgts.sum()
+        print wgts.sum() - 1.0
         ids = rand.choice(len(wgts), size=100000, replace=True, p=wgts)
         k = 0
         while k < nep:
