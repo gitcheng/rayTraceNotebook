@@ -100,6 +100,7 @@ def sim_timing_shower(crystal, shower, nep, t0origin=(0,0,0), shdir=-1,
             x0 = x0*shdir + t0origin[0]
             y0 = y0*shdir + t0origin[1]
             z0 = z0*shdir + t0origin[2]
+            ##print 'j=%d,k=%d, (%.2f,%.2f,%.2f,%.2f)'%(j,k,x0,y0,z0,t0)
             # generate position and direction
             pos, dp = generate_p6(np.array([x0,y0,z0]), dz=1e-6, dr=1e-6)
             # create a photon

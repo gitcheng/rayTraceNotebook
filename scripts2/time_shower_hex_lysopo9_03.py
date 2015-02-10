@@ -1,5 +1,4 @@
 import sys
-##sys.path += ['$HOME/Work/mu2e/LightCollectionStudy/rayTraceNotebook']
 basedir = '/home/chcheng/Work/mu2e/LightCollectionStudy/'
 print sys.path
 import numpy as np
@@ -10,7 +9,7 @@ from geometry_collection_2 import *
 shower = root2rec(basedir+"data/shower_lyso.root", "ntp1")
 np.random.seed(0)
 
-data= sim_timing_shower(chexes['lysopo9'], shower[:20], nep=100, t0origin=[0,0,11.0], shdir=-1, showerunit=0.1, mfp=170, print_prog= True)
-sfile = basedir+'data/timing/showertest'
+data= sim_timing_shower(chexes['lysopo9'], shower[400:600], nep=1000, t0origin=[0,0,11.0], shdir=-1, showerunit=0.1, mfp=170, print_prog= True)
+sfile = basedir+'data/timing/time_geom2_shower_hex_lysopo9_03'
 np.save(sfile, data)
 print 'Save file at', sfile
