@@ -387,10 +387,17 @@ def timing_samples(dtpop, npe0, scinttau, jittersigma, pulsemodel, noise,
     '''
     xtot = np.zeros(n)
     tot = None
+    nd = np.ndim(dtpop)
     for j in xrange(n):
         while tot is None:
-            tevent = event_pulse(dtpop, npe0, scinttau, jittersigma, noise,
-                                 pulsemodel)
+            if nd == 1:
+                tevent = event_pulse(dtpop, npe0, scinttau, jittersigma, noise,
+                                     pulsemodel)
+            elif nd == 2:
+                # random pick a row, then send that row for sampling
+                k = int(rand.uniform() * dtpop.shape[0])
+                tevent = event_pulse(dtpop[k], npe0, scinttau, jittersigma,
+                                     noise, pulsemodel)
             tot= time_reach_threshold(tevent.t, tevent.p, fthreshold)
         xtot[j] = tot
         tot = None
@@ -403,9 +410,19 @@ def draw_pulse_samples(ax, dtpop, npe0, scinttau, jittersigma, noise,
     *ax* : plot axis
     Other arguments are the same as timing_samples
     '''
+    nd = np.ndim(dtpop)
     for j in xrange(n):
-        tevent = event_pulse(dtpop, npe0, scinttau, jittersigma, noise,
-                             pulsemodel)
+        if nd == 1:
+            tevent = event_pulse(dtpop, npe0, scinttau, jittersigma, noise,
+                                 pulsemodel)
+        elif nd == 2:
+            # random pick a row, then send that row for sampling
+            k = int(rand.uniform() * dtpop.shape[0])
+            tevent = event_pulse(dtpop[k], npe0, scinttau, jittersigma, noise,
+                                 pulsemodel)
+        else:
+            raise ValueError('Unknown ndim of dtpop %d'%nd)
+
         ax.plot(tevent.t, tevent.p, **kwargs)
     ax.plot([tevent.t[0], tevent.t[-1]], [0,0], 'k')
     ax.set_xlabel('ns', fontsize='large')

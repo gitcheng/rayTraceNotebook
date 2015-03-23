@@ -4,6 +4,7 @@
 
 import numpy as np
 rand = np.random
+from itertools import chain
 
 def gen_uniform_pos(x1, x2, y1, y2, z1, z2, size):
     '''
@@ -105,3 +106,9 @@ def digiwaveform(tevent, binwidth, tshift=0):
         pp[i] = read_pulse(tbins[i],tevent)
     return np.array(zip(tbins,pp), dtype=tevent.dtype).view(np.recarray)
 
+def getflat(a):
+    '''
+    Return a 1-d array, given an iterable which may be an array of
+    arrays (with variable lengths)
+    '''
+    return np.fromiter(chain.from_iterable(a), np.float64)
