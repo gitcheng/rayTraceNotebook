@@ -41,6 +41,19 @@ fig.savefig('../plots/geometry_coll2_hex.pdf')
 
 # <codecell>
 
+fig= plt.figure(figsize=(20,10))
+i=0
+for mat in ['lyso','baf2','csi']:
+    for sd in ['9','3']:
+        crys = csquares[mat+'po'+sd]
+        ax= fig.add_subplot(161+i, projection='3d')
+        draw_one_crystal(ax, crys, sensor_color='r', xlabel='cm', ylabel='cm', zlabel='cm', zlim=(0,21))
+        ax.set_title(cnames[mat], fontsize='x-large')
+        i+= 1
+fig.savefig('../plots/geometry_coll2_squares.pdf')
+
+# <codecell>
+
 fig= plt.figure(figsize=(10,9))
 i=0
 for lg in [1,2,3]:

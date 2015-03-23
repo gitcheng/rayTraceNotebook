@@ -32,6 +32,12 @@ from gen_utilities import *
 # * BaF2: 20 cm
 # * CsI:  19 cm
 # 
+# Square: 3cm by 3cm<br>
+# Length:
+# * LYSO: 11 cm
+# * BaF2: 20 cm
+# * CsI:  19 cm
+# 
 # PET scan crystals
 # * Cross section 3 mm X 3 mm
 # * Length: 1 cm, 2 cm, or 3 cm
@@ -58,6 +64,18 @@ hexgoes['csi_po']=  hex_prism(center=[0,0,lencsi/2.0],  length=lencsi,  width=he
 hexgoes['lyso_ra']= hex_prism(center=[0,0,lenlyso/2.0], length=lenlyso, width=hexwidth, **lyso_rough)
 hexgoes['baf2_ra']= hex_prism(center=[0,0,lenbaf2/2.0], length=lenbaf2, width=hexwidth, **baf2_rough)
 hexgoes['csi_ra']=  hex_prism(center=[0,0,lencsi/2.0],  length=lencsi,  width=hexwidth, **csi_rough)
+
+# --- square 
+sqside = 3.0
+squgeos = {}
+#  polished
+squgeos['lyso_po'] = rect_prism(center=[0,0,lenlyso/2.0], length=lenlyso, xlen=sqside, ylen=sqside, **lyso_polish)
+squgeos['baf2_po'] = rect_prism(center=[0,0,lenbaf2/2.0], length=lenbaf2, xlen=sqside, ylen=sqside, **baf2_polish)
+squgeos['csi_po'] =  rect_prism(center=[0,0,lencsi/2.0],  length=lencsi,  xlen=sqside, ylen=sqside, **csi_polish)
+#   all sides roughened
+squgeos['lyso_ra'] = rect_prism(center=[0,0,lenlyso/2.0], length=lenlyso, xlen=sqside, ylen=sqside, **lyso_rough)
+squgeos['baf2_ra'] = rect_prism(center=[0,0,lenbaf2/2.0], length=lenbaf2, xlen=sqside, ylen=sqside, **baf2_rough)
+squgeos['csi_ra'] =  rect_prism(center=[0,0,lencsi/2.0],  length=lencsi,  xlen=sqside, ylen=sqside, **csi_rough)
 
 # PET Rectangle
 def rect_list(lengths, width, **surface):
@@ -124,7 +142,18 @@ for mat in ['lyso','baf2','csi']:
             key= mat+sur+sd
             k2= mat+'g'+sd
             chexes[key] = Crystal(key, hexgoes[mat+'_'+sur] + [sensors['s1_'+k2],sensors['s2_'+k2]])
-# rectangles
+            
+# long squares for mu2e
+csquares= {}
+for mat in ['lyso','baf2','csi']:
+    for sur in ['po','ra']:
+        for sd in ['3','9']:
+            key= mat+sur+sd
+            k2= mat+'g'+sd
+            csquares[key] = Crystal(key, squgeos[mat+'_'+sur] + [sensors['s1_'+k2],sensors['s2_'+k2]])
+
+            
+# rectangles (square cross section, actualy, for PET)
 crects={}
 for mat in ['lyso','baf2','csi']:
     for sur in ['po','ra']:
